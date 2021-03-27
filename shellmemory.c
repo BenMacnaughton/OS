@@ -1,7 +1,9 @@
+// Programmer: Ben Macnaughton, 260831379
+// Purpose: To impliment a memory structure for saved variables in the OS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "shell.h"
 
 #define memsize 1000 //max memory size
 
@@ -39,8 +41,8 @@ char* find(char* var){
 }
 
 int hash(char *val){
-    int hash = 1453;
+    long hash = 5381;
     int i;
-    while ((i = *val++)) hash = ((hash << 3) + hash) + i;
+    while ((i = *val++)) hash = ((hash << 5) + hash) + i;
     return hash % memsize;
 }

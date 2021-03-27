@@ -1,14 +1,21 @@
+// Programmer: Ben Macnaughton, 260831379
+// Purpose: To interpret user inputs and execute the appropriate function
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "shell.h"
+#include "shellmemory.h"
+#include "kernel.h"
+#include "memorymanager.h"
 
 //helper signatures
 void help();
 void quit();
 int set(char* var, char* val);
 int print(char* var);
-int run();
+int runScript();
+int exec(char *first, char *second, char *third);
 
 //function to interpret user command
 int interpreter(char *args[]){
@@ -42,9 +49,15 @@ int interpreter(char *args[]){
             return 1;
         }
     }else if(!strcmp(com, "run")){
-        if(!args[2]) return run(args[1]);
+        if(!args[2]) return runScript(args[1]);
         else{
             printf("Incorrect usage.\n");
+            return 1;
+        }
+    }else if(!strcmp(com, "exec")){
+        if(!args[4]) return exec(args[1], args[2], args[3]);
+        else{
+            printf("Too many programs. Max 3.\n");
             return 1;
         }
     }else{
@@ -54,12 +67,13 @@ int interpreter(char *args[]){
 }
 
 void help(){
-    printf("COMMAND\t\t\tDESCRIPTION\n\n");
-    printf("help\t\t\tDisplays all the commands\n");
-    printf("quit\t\t\tExits / terminates the shell with “Bye!”\n");
-    printf("set VAR STRING\t\tAssigns a value to shell memory\n");
-    printf("print VAR\t\tDisplays the STRING assigned to VAR\n");
-    printf("run SCRIPT.TXT\t\tExecutes the file SCRIPT.TXT\n");
+    printf("COMMAND\t\t\t\tDESCRIPTION\n");
+    printf("help\t\t\t\tDisplays all the commands\n");
+    printf("quit\t\t\t\tExits / terminates the shell with “Bye!”\n");
+    printf("set VAR STRING\t\t\tAssigns a value to shell memory\n");
+    printf("print VAR\t\t\tDisplays the STRING assigned to VAR\n");
+    printf("run SCRIPT.TXT\t\t\tExecutes the file SCRIPT.TXT\n");
+    printf("exec prog1 prog2 prog3\t\tExecutes up to 3 concurrent programs provided as arguments\n");
 }
 
 void quit(){
@@ -83,8 +97,6 @@ int print(char* var){
         char *val = find(var);
         if(strcmp(val, "")){
             printf("%s\n", val);
-        }else{
-            printf("Variable does not exist.\n");
         }
         return 0;
     }else{
@@ -94,16 +106,13 @@ int print(char* var){
     }
 }
 
-int run(char* file){
+int runScript(char* file){
     if(file){
         FILE *script = fopen(file, "r");
         if(script){
             char line[256];
             char *args[3];
             while (fgets(line, sizeof(line), script)){
-                int len = strlen(line);
-                line[len] = '\n';
-                line[len+1] = '\0';
                 parse(line, ' ', args);
                 if(args[0] && interpreter(args)){
                     printf("An error in the script occured.\n");
@@ -121,4 +130,25 @@ int run(char* file){
         printf("Please enter a script.\n");
         return 1;
     }
+}
+
+int exec(char *first, char *second, char *third){
+    if(!first){
+        printf("Please enter at least one program\n");
+        return 1;
+    }
+    //if error return
+    if(myinit(first)) return 1;;
+    //process second program
+    if(second){
+        //if error return
+        if(myinit(second)) return 1;;
+    }
+    //process third program
+    if(third){
+        //if error return
+        if(myinit(third)) return 1;
+    }
+    //if all were successful, call scheduler
+    return scheduler();
 }

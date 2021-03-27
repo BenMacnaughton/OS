@@ -1,16 +1,19 @@
+// Programmer: Ben Macnaughton, 260831379
+// Purpose: To impliment the user facing shell of the OS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "interpreter.h"
 #include "shell.h"
 
-void parse(char *string, char delimiter, char *tokens[]);
 void clean(char *string);
 
-int main(){
-	printf("Welcome to the Ben shell!\nVersion 1.0 created January 2020\n");
+int shellUI(){
+	printf("Welcome to the Ben shell!\nVersion 2.0 created February 2020\n");
  	char in[256];
-	char *args[4];
+	char *args[5];
 	if(isatty(STDIN_FILENO)) printf("$ ");
 	while(fgets(in, sizeof(in), stdin)){
 		parse(in, ' ', args);
@@ -19,6 +22,7 @@ int main(){
 		}
 		if(isatty(STDIN_FILENO)) printf("$ ");
 	}
+	return 0;
 }
 
 void parse(char *string, char delimiter, char *tokens[]) {
@@ -26,7 +30,7 @@ void parse(char *string, char delimiter, char *tokens[]) {
 	char buffer[1000];
 	int s=0, b=0, t=0; // counters for string, buffer and tokens
 
-	while(*(string+s) != '\0'){
+	while(*(string+s) != '\0' && *(string+s)!='\n'){
 		// skip leading spaces
 		for(;*(string+s)==' ';s++);
 
@@ -35,7 +39,7 @@ void parse(char *string, char delimiter, char *tokens[]) {
 
 		// otherwise, add word to buffer
 		b=0;
-		while(*(string+s)!=delimiter && *(string+s)!='\0' && *(string+s)!='\n') {
+		while(*(string+s)!=delimiter && *(string+s)!='\0') {
 			buffer[b] = *(string+s);
 			s++;
 			b++;
@@ -46,10 +50,14 @@ void parse(char *string, char delimiter, char *tokens[]) {
 		tokens[t] = strdup(buffer);
 		t++;
 	}
-	tokens[t] = NULL;
+
+	for(; t < 5; t++) tokens[t] = NULL;
 }
 
 void clean(char *string){
+	int len = strlen(string);
+    string[len] = '\n';
+    string[len+1] = '\0';
     char* strc = string;
 	char charc;
 	while(*strc != '\n' &&  *strc != '\0'){
